@@ -15,6 +15,26 @@ const s3 = new S3Client({
   },
 });
 
+async function getImageDimensions(path: string) {
+  const cmd = new Deno.Command("identify", {
+    args: ["-format", "%w %h", path],
+    stdout: "piped",
+    stderr: "piped",
+  });
+
+  const { code, stdout, stderr } = await cmd.output();
+
+  if (code !== 0) {
+    const errorString = new TextDecoder().decode(stderr);
+    throw new Error(`identify failed: ${errorString}`);
+  }
+
+  const output = new TextDecoder().decode(stdout).trim();
+  const [width, height] = output.split(" ");
+
+  return { width, height };
+}
+
 async function uploadFile(
   bucket: string,
   key: string,
@@ -22,6 +42,8 @@ async function uploadFile(
   isCover: boolean
 ) {
   const file = await Deno.readFile(filePath);
+  const dimensions = await getImageDimensions(filePath);
+  const Metadata = { ...dimensions, cover: String(isCover) };
   const command = new PutObjectCommand({
     Bucket: bucket,
     Key: key,
@@ -29,7 +51,7 @@ async function uploadFile(
     ContentType:
       contentType("." + filePath.split(".").at(-1)!) ??
       "application/octet-stream",
-    Metadata: isCover ? { cover: "true" } : {},
+    Metadata,
   });
 
   await s3.send(command);

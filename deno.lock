@@ -8,6 +8,7 @@
     "jsr:@cliffy/keycode@1.0.0-rc.8": "1.0.0-rc.8",
     "jsr:@cliffy/prompt@^1.0.0-rc.8": "1.0.0-rc.8",
     "jsr:@cliffy/table@1.0.0-rc.8": "1.0.0-rc.8",
+    "jsr:@matmen/imagescript@^1.3.1": "1.3.1",
     "jsr:@std/assert@1": "1.0.15",
     "jsr:@std/assert@~1.0.6": "1.0.15",
     "jsr:@std/encoding@~1.0.5": "1.0.10",
@@ -70,6 +71,9 @@
       "dependencies": [
         "jsr:@std/fmt"
       ]
+    },
+    "@matmen/imagescript@1.3.1": {
+      "integrity": "8b3d4fc6a4597259ede419497c7dce9cc523bfdc0fa25f95a33dfab2135cc59b"
     },
     "@std/assert@1.0.15": {
       "integrity": "d64018e951dbdfab9777335ecdb000c0b4e3df036984083be219ce5941e4703b",
@@ -1106,6 +1110,7 @@
     "dependencies": [
       "jsr:@cliffy/command@^1.0.0-rc.8",
       "jsr:@cliffy/prompt@^1.0.0-rc.8",
+      "jsr:@matmen/imagescript@^1.3.1",
       "jsr:@std/assert@1",
       "jsr:@std/fs@^1.0.19",
       "jsr:@std/media-types@^1.1.0",
