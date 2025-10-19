@@ -3,7 +3,7 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { Select } from "@cliffy/prompt";
 import { Command } from "@cliffy/command";
 import { walk } from "@std/fs";
-import { basename } from "@std/path";
+import { basename, join, extname } from "@std/path";
 import { contentType } from "@std/media-types";
 
 const s3 = new S3Client({
@@ -14,6 +14,28 @@ const s3 = new S3Client({
     secretAccessKey: Deno.env.get("R2_SECRET_KEY")!,
   },
 });
+
+async function convertToWebP(inputPath: string, quality = 80): Promise<string> {
+  const tempDir = await Deno.makeTempDir();
+  const outputPath = join(
+    tempDir,
+    basename(inputPath, extname(inputPath)) + ".webp"
+  );
+
+  const cmd = new Deno.Command("convert", {
+    args: [inputPath, "-quality", String(quality), outputPath],
+    stdout: "piped",
+    stderr: "piped",
+  });
+
+  const { code, stderr } = await cmd.output();
+  if (code !== 0) {
+    const errorString = new TextDecoder().decode(stderr);
+    throw new Error(`WebP conversion failed: ${errorString}`);
+  }
+
+  return outputPath;
+}
 
 async function getImageDimensions(path: string) {
   const cmd = new Deno.Command("identify", {
@@ -41,16 +63,16 @@ async function uploadFile(
   filePath: string,
   isCover: boolean
 ) {
-  const file = await Deno.readFile(filePath);
+  const ext = extname(filePath).toLowerCase();
+  const uploadPath = await convertToWebP(filePath);
+  const file = await Deno.readFile(uploadPath);
   const dimensions = await getImageDimensions(filePath);
   const Metadata = { ...dimensions, cover: String(isCover) };
   const command = new PutObjectCommand({
     Bucket: bucket,
-    Key: key,
+    Key: key.replace(ext, ".webp"),
     Body: file,
-    ContentType:
-      contentType("." + filePath.split(".").at(-1)!) ??
-      "application/octet-stream",
+    ContentType: contentType(".webp"),
     Metadata,
   });
 
